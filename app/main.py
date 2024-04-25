@@ -103,7 +103,7 @@ def main():
     )
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--directory")
+    parser.add_argument("--directory", default='')
     args = parser.parse_args()
 
     server = Server("localhost", 4221, args.directory)
