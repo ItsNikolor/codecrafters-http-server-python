@@ -25,8 +25,8 @@ class InputData:
 def response_data(
     status: Status,
     version: str,
-    content_type: str = "",
-    content_lenght: int = 0,
+    content_type: str = "text/plain",
+    content_lenght: int = 3,
     body: str = "",
 ):
     status = f"{version} {status.value}\r\n"
@@ -35,8 +35,7 @@ def response_data(
     )
     body = body
 
-    response = status + headers + body if body else status
-    response += '\r\n'
+    response = status + headers + body + "\r\n"
     return response
 
 
@@ -66,12 +65,11 @@ class Server:
                             data.path[len("/echo/") :],
                         )
                     elif data.path == "/":
-                        response = response_data(
-                            Status.OK, data.version
-                        )
+                        response = response_data(Status.OK, data.version)
                     else:
                         response = response_data(
-                            Status.NOT_FOUND, data.version,
+                            Status.NOT_FOUND,
+                            data.version,
                         )
                     conn.sendall(response)
                     print(f"Data sent {response}")
