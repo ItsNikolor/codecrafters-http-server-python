@@ -35,7 +35,7 @@ def response_data(
     response_status = f"{version} {status.value[0]} {status.value[1]}\r\n"
 
     if body == "":
-        return response_status + "\r\n"
+        return (response_status + "\r\n").encode()
 
     headers = (
         f"Content-Type: {content_type}\r\nContent-Length: {len(body.encode())}\r\n\r\n"
