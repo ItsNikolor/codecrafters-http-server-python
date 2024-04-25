@@ -64,7 +64,6 @@ class Server:
                             Status.OK,
                             data.version,
                             "text/plain",
-                            3,
                             data.path[len("/echo/") :],
                         )
                     elif data.path == "/":
