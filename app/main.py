@@ -2,32 +2,64 @@ import socket
 from time import sleep
 
 import logging
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+
+from enum import Enum
+
+
+class Status(Enum):
+    OK = "200 OK"
+    NOT_FOUND = "404 Not Found"
+
+
+class InputData:
+    def __init__(self, data: str):
+        data = data.split("\r\n")
+
+        self.method, self.path, self.version = data[0].split(" ")
+
+
+def response_data(
+    status: Status, version: str, content_type: str, content_lenght: int, body: str
+):
+    return f"{version} {status.value}\r\nContent-Type: {content_type}\r\nContent-Length: {content_lenght}\r\n\r\n{body}\r\n".encode()
+
+
+class Server:
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
+
+    def start(self):
+        with socket.create_server(
+            (self.host, self.port), reuse_port=True
+        ) as server_socket:
+            conn, addr = server_socket.accept()
+            with conn:
+                print(f"Connected by {addr}")
+                while True:
+                    data = conn.recv(1024).decode()
+                    print(f"Data = {data}")
+                    data = InputData(data)
+
+                    conn.sendall(
+                        response_data(
+                            Status.OK, data.version, "text/plain", 3, data.path
+                        )
+                    )
+                    print(
+                        f"Data sent {response_data(Status.OK, data.version, 'text/plain', 3, data.path)}"
+                    )
 
 
 def main():
     print("Logs from your program will appear here!")
 
-    with socket.create_server(("localhost", 4221), reuse_port=True) as server_socket:
-        conn, addr = server_socket.accept()
-        with conn:
-            print(f"Connected by {addr}")
-            while True:
-                data = conn.recv(1024).decode()
-                print(f'Data = {data}')
-
-                path = data.split('\r\n')[0].split(' ')[1]
-                if path == '/':
-                    conn.sendall(b'HTTP/1.1 200 OK\r\n\r\n')
-                else:
-                    conn.sendall(b'HTTP/1.1 404 Not Found\r\n\r\n')
-                break
-            
-            
-        # sleep(3)
-
-
+    server = Server("localhost", 4221)
+    server.start()
 
 
 if __name__ == "__main__":
