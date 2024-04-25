@@ -7,7 +7,7 @@ import argparse
 from enum import Enum
 
 
-class Status(Enum):
+class HttpStatus(Enum):
     OK = (200, "OK")
     NOT_FOUND = (404, "Not Found")
     CREATED = (201, "Created")
@@ -27,19 +27,21 @@ class InputData:
 
 
 def response_data(
-    status: Status,
+    status: HttpStatus,
     version: str,
-    content_type: str = "text/plain",
+    content_type: str = "",
     body: str = "",
 ):
     response_status = f"{version} {status.value[0]} {status.value[1]}\r\n"
 
-    if status == Status.NOT_FOUND or body == "":
-        response = response_status + "\r\n"
-    else:
-        headers = f"Content-Type: {content_type}\r\nContent-Length: {len(body.encode())}\r\n\r\n"
+    if body == "":
+        return response_status + "\r\n"
 
-        response = response_status + headers + body
+    headers = (
+        f"Content-Type: {content_type}\r\nContent-Length: {len(body.encode())}\r\n\r\n"
+    )
+
+    response = response_status + headers + body
 
     return response.encode()
 
@@ -66,15 +68,20 @@ class Server:
             print(f"Data = {data}")
             data = InputData(data)
 
+            assert data.method in ["POST", "GET"]
+            assert data.version == "HTTP/1.1"
+
             if data.method == "POST":
+                assert data.path.startswith("/files/")
+
                 filename = data.path[len("/files/") :]
                 with open(os.path.join(self.directory, filename), "wb") as file:
                     file.write(data.body.encode())
 
-                response = response_data(Status.CREATED, data.version)
+                response = response_data(HttpStatus.CREATED, data.version)
             elif data.path.startswith("/echo/"):
                 response = response_data(
-                    Status.OK,
+                    HttpStatus.OK,
                     data.version,
                     "text/plain",
                     data.path[len("/echo/") :],
@@ -84,22 +91,22 @@ class Server:
                 if os.path.isfile(os.path.join(self.directory, filename)):
                     with open(os.path.join(self.directory, filename), "rb") as file:
                         response = response_data(
-                            Status.OK,
+                            HttpStatus.OK,
                             data.version,
                             "application/octet-stream",
                             file.read().decode(),
                         )
                 else:
-                    response = response_data(Status.NOT_FOUND, data.version)
+                    response = response_data(HttpStatus.NOT_FOUND, data.version)
             elif data.path == "/user-agent":
                 response = response_data(
-                    Status.OK, data.version, "text/plain", data.user_agent
+                    HttpStatus.OK, data.version, "text/plain", data.user_agent
                 )
             elif data.path == "/":
-                response = response_data(Status.OK, data.version)
+                response = response_data(HttpStatus.OK, data.version)
             else:
                 response = response_data(
-                    Status.NOT_FOUND,
+                    HttpStatus.NOT_FOUND,
                     data.version,
                 )
             print(f"Data sent {response}")
