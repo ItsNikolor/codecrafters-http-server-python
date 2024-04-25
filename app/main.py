@@ -16,6 +16,7 @@ def main():
             while True:
                 data = conn.recv(1024)
                 print(f'Data = {data}')
+                break
                 if not data:
                     break
             conn.sendall(b'HTTP/1.1 200 OK\r\n\r\n')
