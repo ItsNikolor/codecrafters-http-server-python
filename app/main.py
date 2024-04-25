@@ -34,8 +34,7 @@ def response_data(
     if status == Status.NOT_FOUND or body == "":
         response = response_status + "\r\n"
     else:
-        body = body.encode()
-        headers = f"Content-Type: {content_type}\r\nContent-Length: {len(body)}\r\n\r\n"
+        headers = f"Content-Type: {content_type}\r\nContent-Length: {len(body.encode())}\r\n\r\n"
 
         response = response_status + headers + body
 
