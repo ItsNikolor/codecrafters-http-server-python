@@ -99,7 +99,7 @@ class Server:
 
 def main():
     print(
-        f"Logs from your program will appear here! Starting server on {args.host}:{args.port}..."
+        f"Logs from your program will appear here! Starting server on localhost:4221..."
     )
 
     parser = argparse.ArgumentParser()
