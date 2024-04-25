@@ -32,7 +32,6 @@ def response_data(
     content_type: str = "text/plain",
     body: str = "",
 ):
-
     response_status = f"{version} {status.value}\r\n"
 
     if status == Status.NOT_FOUND or body == "":
@@ -54,32 +53,33 @@ class Server:
         with socket.create_server(
             (self.host, self.port), reuse_port=True
         ) as server_socket:
-            conn, addr = server_socket.accept()
-            with conn:
-                print(f"Connected by {addr}")
-                while True:
-                    data = conn.recv(1024).decode()
-                    print(f"Data = {data}")
-                    data = InputData(data)
+            while True:
+                conn, addr = server_socket.accept()
+                with conn:
+                    print(f"Connected by {addr}")
+                    while True:
+                        data = conn.recv(1024).decode()
+                        print(f"Data = {data}")
+                        data = InputData(data)
 
-                    if data.path.startswith("/echo/"):
-                        response = response_data(
-                            Status.OK,
-                            data.version,
-                            "text/plain",
-                            data.path[len("/echo/") :],
-                        )
-                    elif data.path == '/user-agent':
-                        response = response_data(Status.OK, data.version, 'text/plain', data.user_agent)
-                    elif data.path == "/":
-                        response = response_data(Status.OK, data.version)
-                    else:
-                        response = response_data(
-                            Status.NOT_FOUND,
-                            data.version,
-                        )
-                    print(f"Data sent {response}")
-                    conn.sendall(response)
+                        if data.path.startswith("/echo/"):
+                            response = response_data(
+                                Status.OK,
+                                data.version,
+                                "text/plain",
+                                data.path[len("/echo/") :],
+                            )
+                        elif data.path == '/user-agent':
+                            response = response_data(Status.OK, data.version, 'text/plain', data.user_agent)
+                        elif data.path == "/":
+                            response = response_data(Status.OK, data.version)
+                        else:
+                            response = response_data(
+                                Status.NOT_FOUND,
+                                data.version,
+                            )
+                        print(f"Data sent {response}")
+                        conn.sendall(response)
 
 
 def main():
