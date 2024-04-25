@@ -21,6 +21,10 @@ class InputData:
 
         self.method, self.path, self.version = data[0].split(" ")
 
+        for line in data:
+            if line.startswith("User-Agent:"):
+                self.user_agent = line[len("User-Agent: ") :]
+
 
 def response_data(
     status: Status,
@@ -65,6 +69,8 @@ class Server:
                             "text/plain",
                             data.path[len("/echo/") :],
                         )
+                    elif data.path == '/user-agent':
+                        response = response_data(Status.OK, data.version, 'text/plain', data.user_agent)
                     elif data.path == "/":
                         response = response_data(Status.OK, data.version)
                     else:
