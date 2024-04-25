@@ -32,7 +32,7 @@ def response_data(
     content_type: str = "text/plain",
     body: str = "",
 ):
-    response_status = f"{version} {' '.join(status.value)}\r\n"
+    response_status = f"{version} {status.value[0]} {status.value[1]}\r\n"
 
     if status == Status.NOT_FOUND or body == "":
         response = response_status + "\r\n"
@@ -72,7 +72,6 @@ class Server:
                     file.write(data.body.encode())
 
                 response = response_data(Status.CREATED, data.version)
-
             elif data.path.startswith("/echo/"):
                 response = response_data(
                     Status.OK,
