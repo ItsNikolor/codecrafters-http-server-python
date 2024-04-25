@@ -8,8 +8,9 @@ from enum import Enum
 
 
 class Status(Enum):
-    OK = "200 OK"
-    NOT_FOUND = "404 Not Found"
+    OK = (200, "OK")
+    NOT_FOUND = (404, "Not Found")
+    CREATED = (201, "Created")
 
 
 class InputData:
@@ -22,6 +23,8 @@ class InputData:
             if line.startswith("User-Agent:"):
                 self.user_agent = line[len("User-Agent: ") :]
 
+        self.body = data[-1]
+
 
 def response_data(
     status: Status,
@@ -29,7 +32,7 @@ def response_data(
     content_type: str = "text/plain",
     body: str = "",
 ):
-    response_status = f"{version} {status.value}\r\n"
+    response_status = f"{version} {' '.join(status.value)}\r\n"
 
     if status == Status.NOT_FOUND or body == "":
         response = response_status + "\r\n"
@@ -63,7 +66,14 @@ class Server:
             print(f"Data = {data}")
             data = InputData(data)
 
-            if data.path.startswith("/echo/"):
+            if data.method == "POST":
+                filename = data.path[len("/files/") :]
+                with open(os.path.join(self.directory, filename), "wb") as file:
+                    file.write(data.body.encode())
+
+                response = response_data(Status.CREATED, data.version)
+
+            elif data.path.startswith("/echo/"):
                 response = response_data(
                     Status.OK,
                     data.version,
@@ -103,7 +113,7 @@ def main():
     )
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--directory", default='')
+    parser.add_argument("--directory", default="")
     args = parser.parse_args()
 
     server = Server("localhost", 4221, args.directory)
