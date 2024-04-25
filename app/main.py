@@ -1,4 +1,5 @@
 import socket
+from time import sleep
 
 
 def main():
@@ -18,6 +19,7 @@ def main():
             # if not data:
             #     break
             conn.sendall('HTTP/1.1 200 OK\r\n\r\n')
+        sleep(3)
 
 
 
