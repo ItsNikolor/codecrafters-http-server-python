@@ -37,7 +37,7 @@ def response_data(
         body = body.encode()
         headers = f"Content-Type: {content_type}\r\nContent-Length: {len(body)}\r\n\r\n"
 
-        response = response_status + headers + body + "\r\n"
+        response = response_status + headers + body
 
     return response.encode()
 
