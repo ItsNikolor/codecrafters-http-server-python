@@ -35,7 +35,8 @@ def response_data(
     )
     body = body
 
-    response = status + headers + body + "\r\n" if body else status
+    response = status + headers + body if body else status
+    response += '\r\n'
     return response
 
 
