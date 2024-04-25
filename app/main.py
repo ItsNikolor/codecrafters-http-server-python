@@ -44,15 +44,25 @@ class Server:
                     data = conn.recv(1024).decode()
                     print(f"Data = {data}")
                     data = InputData(data)
-
-                    conn.sendall(
-                        response_data(
-                            Status.OK, data.version, "text/plain", 3, data.path
+                    
+                    if data.path[0] != '/':
+                        conn.sendall(
+                            response_data(
+                                Status.NOT_FOUND, data.version, "text/plain", 3, data.path
+                            )
                         )
-                    )
-                    print(
-                        f"Data sent {response_data(Status.OK, data.version, 'text/plain', 3, data.path)}"
-                    )
+                        print(
+                            f"Data sent {response_data(Status.NOT_FOUND, data.version, 'text/plain', 3, data.path)}"
+                        )
+                    else:
+                        conn.sendall(
+                            response_data(
+                                Status.OK, data.version, "text/plain", 3, data.path
+                            )
+                        )
+                        print(
+                            f"Data sent {response_data(Status.OK, data.version, 'text/plain', 3, data.path)}"
+                        )
 
 
 def main():
