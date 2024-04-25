@@ -1,11 +1,7 @@
+import os
 import socket
 import threading
-from time import sleep
-
-import logging
-
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+import argparse
 
 
 from enum import Enum
@@ -46,9 +42,10 @@ def response_data(
 
 
 class Server:
-    def __init__(self, host, port):
+    def __init__(self, host, port, directory):
         self.host = host
         self.port = port
+        self.directory = directory
 
     def start(self):
         with socket.create_server(
@@ -73,8 +70,22 @@ class Server:
                     "text/plain",
                     data.path[len("/echo/") :],
                 )
-            elif data.path == '/user-agent':
-                response = response_data(Status.OK, data.version, 'text/plain', data.user_agent)
+            elif data.path.startswith("/files/"):
+                filename = data.path[len("/files/") :]
+                if os.path.isfile(os.path.join(self.directory, filename)):
+                    with open(os.path.join(self.directory, filename), "rb") as file:
+                        response = response_data(
+                            Status.OK,
+                            data.version,
+                            "application/octet-stream",
+                            file.read().decode(),
+                        )
+                else:
+                    response = response_data(Status.NOT_FOUND, data.version)
+            elif data.path == "/user-agent":
+                response = response_data(
+                    Status.OK, data.version, "text/plain", data.user_agent
+                )
             elif data.path == "/":
                 response = response_data(Status.OK, data.version)
             else:
@@ -87,9 +98,15 @@ class Server:
 
 
 def main():
-    print("Logs from your program will appear here!")
+    print(
+        f"Logs from your program will appear here! Starting server on {args.host}:{args.port}..."
+    )
 
-    server = Server("localhost", 4221)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--directory")
+    args = parser.parse_args()
+
+    server = Server("localhost", 4221, args.directory)
     server.start()
 
 
