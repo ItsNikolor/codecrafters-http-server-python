@@ -3,7 +3,7 @@ from time import sleep
 
 import logging
 logger = logging.getLogger(__name__)
-logger.basicConfig(level=logging.INFO)
+logger.setLevel(logging.INFO)
 
 
 def main():
