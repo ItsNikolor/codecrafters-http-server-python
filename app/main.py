@@ -73,8 +73,8 @@ class Server:
                             Status.NOT_FOUND,
                             data.version,
                         )
-                    conn.sendall(response)
                     print(f"Data sent {response}")
+                    conn.sendall(response)
 
 
 def main():
