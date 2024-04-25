@@ -29,14 +29,20 @@ def response_data(
     content_lenght: int = 3,
     body: str = "",
 ):
-    status = f"{version} {status.value}\r\n"
-    headers = (
-        f"Content-Type: {content_type}\r\nContent-Length: {content_lenght}\r\n\r\n"
-    )
-    body = body
 
-    response = status + headers + body + "\r\n"
-    return response
+    response_status = f"{version} {status.value}\r\n"
+
+    if status == Status.NOT_FOUND or body == "":
+        response = response_status + "\r\n"
+    else:
+        headers = (
+            f"Content-Type: {content_type}\r\nContent-Length: {content_lenght}\r\n\r\n"
+        )
+        body = body
+
+        response = response_status + headers + body + "\r\n"
+
+    return response.encode()
 
 
 class Server:
