@@ -23,9 +23,20 @@ class InputData:
 
 
 def response_data(
-    status: Status, version: str, content_type: str, content_lenght: int, body: str
+    status: Status,
+    version: str,
+    content_type: str = "",
+    content_lenght: int = 0,
+    body: str = "",
 ):
-    return f"{version} {status.value}\r\nContent-Type: {content_type}\r\nContent-Length: {content_lenght}\r\n\r\n{body}\r\n".encode()
+    status = f"{version} {status.value}\r\n"
+    headers = (
+        f"Content-Type: {content_type}\r\nContent-Length: {content_lenght}\r\n\r\n"
+    )
+    body = body
+
+    response = status + headers + body + "\r\n" if body else status
+    return response
 
 
 class Server:
@@ -44,25 +55,25 @@ class Server:
                     data = conn.recv(1024).decode()
                     print(f"Data = {data}")
                     data = InputData(data)
-                    
-                    if data.path[0] != '/':
-                        conn.sendall(
-                            response_data(
-                                Status.NOT_FOUND, data.version, "text/plain", 3, data.path
-                            )
+
+                    if data.path.startswith("/echo/"):
+                        response = response_data(
+                            Status.OK,
+                            data.version,
+                            "text/plain",
+                            3,
+                            data.path[len("/echo/") :],
                         )
-                        print(
-                            f"Data sent {response_data(Status.NOT_FOUND, data.version, 'text/plain', 3, data.path)}"
+                    elif data.path == "/":
+                        response = response_data(
+                            Status.OK, data.version
                         )
                     else:
-                        conn.sendall(
-                            response_data(
-                                Status.OK, data.version, "text/plain", 3, data.path
-                            )
+                        response = response_data(
+                            Status.NOT_FOUND, data.version,
                         )
-                        print(
-                            f"Data sent {response_data(Status.OK, data.version, 'text/plain', 3, data.path)}"
-                        )
+                    conn.sendall(response)
+                    print(f"Data sent {response}")
 
 
 def main():
