@@ -1,4 +1,5 @@
 import socket
+import threading
 from time import sleep
 
 import logging
@@ -55,31 +56,34 @@ class Server:
         ) as server_socket:
             while True:
                 conn, addr = server_socket.accept()
-                with conn:
-                    print(f"Connected by {addr}")
-                    while True:
-                        data = conn.recv(1024).decode()
-                        print(f"Data = {data}")
-                        data = InputData(data)
+                thread = threading.Thread(target=self.handle_request, args=(conn, addr))
+                thread.start()
 
-                        if data.path.startswith("/echo/"):
-                            response = response_data(
-                                Status.OK,
-                                data.version,
-                                "text/plain",
-                                data.path[len("/echo/") :],
-                            )
-                        elif data.path == '/user-agent':
-                            response = response_data(Status.OK, data.version, 'text/plain', data.user_agent)
-                        elif data.path == "/":
-                            response = response_data(Status.OK, data.version)
-                        else:
-                            response = response_data(
-                                Status.NOT_FOUND,
-                                data.version,
-                            )
-                        print(f"Data sent {response}")
-                        conn.sendall(response)
+    def handle_request(self, conn, addr):
+        with conn:
+            print(f"Connected by {addr}")
+            data = conn.recv(1024).decode()
+            print(f"Data = {data}")
+            data = InputData(data)
+
+            if data.path.startswith("/echo/"):
+                response = response_data(
+                    Status.OK,
+                    data.version,
+                    "text/plain",
+                    data.path[len("/echo/") :],
+                )
+            elif data.path == '/user-agent':
+                response = response_data(Status.OK, data.version, 'text/plain', data.user_agent)
+            elif data.path == "/":
+                response = response_data(Status.OK, data.version)
+            else:
+                response = response_data(
+                    Status.NOT_FOUND,
+                    data.version,
+                )
+            print(f"Data sent {response}")
+            conn.sendall(response)
 
 
 def main():
